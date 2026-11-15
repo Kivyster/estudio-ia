@@ -24,6 +24,10 @@ Preencha no `.env` (cópia de `.env.example`) as que tiver. **Mínimo 1; recomen
 | `OPENROUTER_API_KEY` | https://openrouter.ai/keys | reserva final (modelos `:free`) |
 | `ZAI_API_KEY` | https://z.ai → API Keys | GLM Flash: QA e sons |
 | `TAVILY_API_KEY` (opcional) | https://tavily.com | pesquisa na web do cargo Pesquisador |
+| `DEEPSEEK_API_KEY` (opcional, **pago**) | https://platform.deepseek.com/api_keys | reserva barata em todos os cargos (não há plano grátis) |
+| `CUSTOM_BASE_URL`, `CUSTOM_MODEL`, `CUSTOM_API_KEY` (opcional) | seu provedor | qualquer API compatível com OpenAI como reserva (Together, Mistral, Azure OpenAI, vLLM…) |
+
+**Modelo local (LM Studio, Ollama)?** O Worker roda na nuvem e não enxerga o `localhost` do seu computador. Dá para usar como reserva expondo o servidor local por um túnel (por exemplo `cloudflared tunnel --url http://localhost:1234`) e pondo a URL do túnel (terminando em `/v1`) em `CUSTOM_BASE_URL`. Só funciona com o computador ligado e o modelo carregado, e modelos locais costumam ser lentos demais para os 15 cargos: use como reserva, não como titular.
 
 Os limites gratuitos mudam com o tempo. O escritório mede o uso de cada modelo por dia e passa para o próximo da cadeia quando um estoura.
 

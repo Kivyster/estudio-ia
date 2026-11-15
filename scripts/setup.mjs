@@ -28,7 +28,9 @@ const aviso = (t) => console.log(`  ${amarelo('!')} ${t}`);
 const falha = (t) => { console.error(`\n${vermelho('✘')} ${t}\n`); process.exit(1); };
 function sh(cmd, argv = [], op = {}) {
   if (DRY && !op.leitura) { console.log(`  (simulado) ${cmd} ${argv.join(' ').slice(0, 100)}`); return { ok: true, out: '', err: '' }; }
-  const r = spawnSync(cmd, argv, { cwd: op.cwd ?? RAIZ, input: op.input, encoding: 'utf8', shell: W, stdio: op.inherit ? 'inherit' : 'pipe', env: { ...process.env, ...(op.env ?? {}), GITHUB_TOKEN: '' } });
+  // no Windows (shell) argumentos com espaço ou aspas precisam de citação; nos outros sistemas vão direto
+  const cita = (x) => (W && /[\s"&|<>^%]/.test(x) ? `"${String(x).replace(/"/g, "\\\"")}"` : x);
+  const r = spawnSync(cmd, W ? argv.map(cita) : argv, { cwd: op.cwd ?? RAIZ, input: op.input, encoding: 'utf8', shell: W, stdio: op.inherit ? 'inherit' : 'pipe', env: { ...process.env, ...(op.env ?? {}), GITHUB_TOKEN: '' } });
   return { ok: r.status === 0, out: (r.stdout ?? '') + '', err: (r.stderr ?? '') + '' };
 }
 const wrangler = (argv, op = {}) => sh('npx', ['wrangler', ...argv], op);
@@ -55,7 +57,28 @@ const PROVEDORES = {
   nvidia: { chave: 'NVIDIA_API_KEY', onde: 'https://build.nvidia.com (Get API Key)', nota: 'modelos grandes (Nemotron); game designer e reservas. Grátis.' },
   openrouter: { chave: 'OPENROUTER_API_KEY', onde: 'https://openrouter.ai/keys', nota: 'reserva final (modelos :free). Grátis.' },
   zai: { chave: 'ZAI_API_KEY', onde: 'https://z.ai (API Keys)', nota: 'GLM Flash; QA e sons. Grátis.' },
+  deepseek: { chave: 'DEEPSEEK_API_KEY', onde: 'https://platform.deepseek.com/api_keys', nota: 'PAGO (bem barato, sem plano grátis): entra como reserva em todos os cargos. Opcional.', pago: true },
 };
+
+// ---------- modo --verificar: diz em JSON o que falta (para qualquer agente ou script ler) ----------
+if (args.includes('--verificar')) {
+  const e = lerEnv(), c = CONFIG && existsSync(CONFIG) ? JSON.parse(readFileSync(CONFIG, 'utf8')) : (estado.cfg ?? {});
+  const tem = (cmd, a = ['--version']) => spawnSync(cmd, a, { encoding: 'utf8', shell: W }).status === 0;
+  const ghOk = tem('gh') && spawnSync('gh', ['auth', 'status'], { encoding: 'utf8', shell: W, env: { ...process.env, GITHUB_TOKEN: '' } }).status === 0;
+  const wr = tem('npx') && /logged in|You are logged/i.test(spawnSync('npx', ['wrangler', 'whoami'], { encoding: 'utf8', shell: W, cwd: join(RAIZ, 'worker') }).stdout ?? '');
+  const provedores = Object.fromEntries(Object.entries(PROVEDORES).map(([id, p]) => [id, { chave: p.chave, definida: !!e[p.chave], pago: !!p.pago, onde: p.onde }]));
+  const faltando = [];
+  if (Number(process.versions.node.split('.')[0]) < 20) faltando.push('node>=20');
+  if (!tem('git')) faltando.push('git');
+  if (!tem('gh')) faltando.push('gh (GitHub CLI)'); else if (!ghOk) faltando.push('gh auth login');
+  if (!wr) faltando.push('npx wrangler login (conta Cloudflare)');
+  if (!existsSync(CONFIG ?? '') && !estado.cfg) faltando.push('setup.config.json (nome, repoAssets, telegram, robo)');
+  if (!Object.values(provedores).some((p) => p.definida && !p.pago) && !e.CUSTOM_BASE_URL) faltando.push('ao menos 1 chave de API de modelo no .env (GEMINI_API_KEY é a mais importante)');
+  if (c.telegram && !e.TELEGRAM_BOT_TOKEN) faltando.push('TELEGRAM_BOT_TOKEN no .env (ou telegram:false)');
+  console.log(JSON.stringify({ pronto_para_instalar: faltando.length === 0, faltando, configuracao: c, provedores, ja_instalado: { banco: !!estado.dbId, worker: estado.workerUrl ?? null, hub: estado.hubUrl ?? null },
+    observacao: 'GITHUB_ASSETS_TOKEN não entra aqui: só pode ser criado depois que o repositório existe; o setup para e pede.' }, null, 1));
+  process.exit(0);
+}
 
 // ---------- 0. pré-requisitos ----------
 console.log(negrito('\n🎮  Estúdio IA — instalação\n') + 'Um escritório de agentes com IAs gratuitas que fazem jogos 2D, controlado por Telegram e por um hub em pixel art.\n');
@@ -98,8 +121,14 @@ for (const [id, p] of Object.entries(PROVEDORES)) {
   const v = await perguntaSecreta(`  Cole a chave de ${id} (não aparece na tela): `);
   if (v) env[p.chave] = v;
 }
+if (!CONFIG && !env.CUSTOM_BASE_URL && await simNao('\nTem um modelo próprio ou outra API compatível com OpenAI (LM Studio/Ollama por túnel, Together, Mistral…) para usar como reserva?', false)) {
+  env.CUSTOM_BASE_URL = await pergunta('  URL base da API (ex.: https://meu-tunel.exemplo.com/v1)');
+  env.CUSTOM_MODEL = await pergunta('  Nome do modelo (como a API o chama)');
+  env.CUSTOM_API_KEY = await perguntaSecreta('  Chave da API (deixe em branco se não tiver): ');
+}
 const ativos = Object.entries(PROVEDORES).filter(([, p]) => env[p.chave]).map(([id]) => id);
-if (!ativos.length) falha('Preciso de pelo menos 1 chave de API. A do Gemini é a mais importante. Preencha o .env (veja .env.example) e rode de novo.');
+if (env.CUSTOM_BASE_URL) { ativos.push('custom'); ok(`custom: ${env.CUSTOM_BASE_URL} (modelo ${env.CUSTOM_MODEL ?? '?'})`); }
+if (!ativos.filter((a) => !PROVEDORES[a]?.pago).length) falha('Preciso de pelo menos 1 chave de API. A do Gemini é a mais importante. Preencha o .env (veja .env.example) e rode de novo.');
 if (!ativos.includes('gemini')) aviso('Sem Gemini: o crítico não ouve áudio nem vê imagem, e a qualidade cai. Dá pra instalar assim, mas recomendo a chave do Gemini.');
 if (ativos.length < 2) aviso('Com 1 provedor só, uma cota estourada para o escritório. Recomendo pelo menos 2.');
 
@@ -149,7 +178,9 @@ if (!estado.migrado) {
   // skills do banco = arquivos .md; desliga funcionários de provedores sem chave
   const tmp = join(tmpdir(), `estudio-skills-${Date.now()}.sql`);
   const sql = sh('node', [join(RAIZ, 'scripts', 'sincronizar-skills.mjs')], { leitura: true }).out
-    + `UPDATE funcionarios SET ativo = 0 WHERE provedor NOT IN (${["'cloudflare'", ...ativos.map((a) => `'${a}'`)].join(',')});\n`;
+    + `UPDATE funcionarios SET ativo = 0 WHERE provedor NOT IN (${["'cloudflare'", ...ativos.map((a) => `'${a}'`)].join(',')});\n`
+    + (ativos.includes('deepseek') ? "UPDATE funcionarios SET ativo = 1 WHERE provedor = 'deepseek';\nUPDATE cargos SET cadeia = json_insert(cadeia, '$[#]', 'deepseek_chat') WHERE cadeia NOT LIKE '%deepseek_chat%' AND id NOT IN ('critico');\n" : '')
+    + (ativos.includes('custom') ? `UPDATE funcionarios SET ativo = 1, modelo = '${String(env.CUSTOM_MODEL ?? '').replace(/'/g, "''")}' WHERE id = 'custom_1';\nUPDATE cargos SET cadeia = json_insert(cadeia, '$[#]', 'custom_1') WHERE cadeia NOT LIKE '%custom_1%' AND id NOT IN ('critico');\n` : '');
   if (!DRY) { writeFileSync(tmp, sql); const r = wrangler(['d1', 'execute', cfg.nome, '--remote', '--file', tmp], { cwd: W_DIR }); rmSync(tmp, { force: true }); if (!r.ok) falha('Falhou sincronizando as skills.'); }
   estado.migrado = true; salvarEstado();
 }
@@ -184,6 +215,7 @@ const subdominio = estado.workerUrl.replace(/^https:\/\/[^.]+\./, '');
 estado.hubUrl = `https://${cfg.nome}-hub.${subdominio}`; salvarEstado();
 const segredos = { ESTUDIO_KEY: env.ESTUDIO_KEY, HUB_SENHA: env.HUB_SENHA, GITHUB_ASSETS_TOKEN: env.GITHUB_ASSETS_TOKEN, TELEGRAM_BOT_TOKEN: env.TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID: env.TELEGRAM_CHAT_ID, TAVILY_API_KEY: env.TAVILY_API_KEY };
 for (const p of Object.values(PROVEDORES)) segredos[p.chave] = env[p.chave];
+segredos.CUSTOM_BASE_URL = env.CUSTOM_BASE_URL; segredos.CUSTOM_API_KEY = env.CUSTOM_API_KEY;
 for (const [k, v] of Object.entries(segredos)) if (v) { const r = wrangler(['secret', 'put', k], { cwd: W_DIR, input: v }); if (!r.ok) falha(`Falhou gravar o segredo ${k}.`); }
 ok(`Worker no ar: ${estado.workerUrl}`);
 if (!DRY) writeFileSync(join(W_DIR, 'wrangler.jsonc'), wranglerJson({ hubUrl: estado.hubUrl }));
@@ -224,6 +256,6 @@ console.log(`\n${negrito(verde('✅ Pronto!'))}
   Assets:    https://github.com/${repoCompleto}
 
   Para criar seu primeiro jogo: abra o hub, clique em "Enviar PDF" e mande o GDD (documento de design) do seu jogo.
-  ${CONFIG ? '' : 'Dica: peça a um agente (Claude Code) para ler o CLAUDE.md e ajudar a escrever o GDD.'}
+  ${CONFIG ? '' : 'Dica: qualquer agente de IA (Claude Code, Codex, Gemini CLI, Cursor…) pode ler o AGENTS.md e ajudar a escrever o GDD.'}
 `);
 rl?.close();

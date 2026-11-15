@@ -21,7 +21,7 @@
 - **A robot that plays.** After each milestone, GitHub Actions opens the game in Chromium, leaves the title screen, walks, jumps, tries to cross the level, and reports back.
 - **~10k CC0 art pieces** (Kenney), labeled by category and tags, used as bases for characters and tiles.
 - **Style bible.** An art director defines palette, scale and rules in milestone 1; code snaps all art to that palette.
-- **Free end to end** (Cloudflare Workers + D1, Gemini/Groq/NVIDIA/OpenRouter/Z.ai, GitHub). No credit card.
+- **Free end to end** (Cloudflare Workers + D1, Gemini/Groq/NVIDIA/OpenRouter/Z.ai — plus DeepSeek or any OpenAI-compatible API as a fallback, GitHub). No credit card.
 
 ## Install (~15 minutes)
 
@@ -35,7 +35,19 @@ node scripts/setup.mjs
 
 The wizard **asks for what's missing** (name, API keys, Telegram…), creates the database and a private repository, deploys the Worker and the hub, connects Telegram and the test robot, and ends with a smoke test. It is idempotent: re-run it any time. Keys live only in your local `.env` (git-ignored, never printed).
 
-**Prefer an AI agent to drive it?** Open the folder in [Claude Code](https://claude.com/claude-code) and say *"set up the studio"*. [`CLAUDE.md`](CLAUDE.md) tells the agent how to interview you, write the config and run the setup — without ever asking for secrets in chat.
+**Works with any AI agent — or none.** The installer (`scripts/setup.mjs`) is a plain Node program, independent of any AI. If you'd rather have an agent drive it (it asks the questions, writes the config and runs the setup), open the folder in your tool and say *"set up the studio"*:
+
+| Tool | Reads |
+|---|---|
+| Claude Code | `CLAUDE.md` (imports `AGENTS.md`) and the skill in `.claude/skills` |
+| Codex, OpenCode, Jules, Aider, Zed and others | `AGENTS.md` |
+| Gemini CLI, Antigravity | `GEMINI.md` / `AGENTS.md` and `.agents/skills` |
+| Cursor | `.cursor/rules/estudio.mdc` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Windsurf · Cline/Roo | `.windsurfrules` · `.clinerules` |
+| DeepSeek, LM Studio, Ollama and other chats/harnesses | paste `AGENTS.md` as the system prompt, or run `node scripts/setup.mjs` yourself |
+
+All copies come from **one file** (`AGENTS.md`; regenerate with `node scripts/sincronizar-agentes.mjs`). The agent only needs to run commands and read/write files — no proprietary features. `node scripts/setup.mjs --verificar` prints what's still missing as JSON so any agent (even small ones) can follow the script. The agent **never** asks for keys in chat.
 
 See [`docs/CONFIGURACAO.md`](docs/CONFIGURACAO.md) (where to create each key), [`docs/COMO-FUNCIONA.md`](docs/COMO-FUNCIONA.md) (architecture), [`docs/PERSONALIZAR.md`](docs/PERSONALIZAR.md) (customizing roles, models, art packs, engine) and [`docs/GDD-MODELO.md`](docs/GDD-MODELO.md) (GDD template).
 

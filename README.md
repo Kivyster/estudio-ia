@@ -21,7 +21,7 @@
 - **Robô que joga.** A cada marco, o GitHub Actions abre o jogo no Chromium, sai do título, anda, pula, tenta atravessar a fase e devolve o relatório pra equipe.
 - **Biblioteca de ~10 mil peças CC0** (Kenney), já rotuladas por categoria e etiquetas, usadas como base de personagens e tiles.
 - **Bíblia de estilo.** No marco 1 um diretor de arte define paleta, escala e regras; o código *prende* toda arte nessa paleta.
-- **Gratuito de ponta a ponta** (Cloudflare Workers + D1, Gemini/Groq/NVIDIA/OpenRouter/Z.ai, GitHub). Sem cartão.
+- **Gratuito de ponta a ponta** (Cloudflare Workers + D1, Gemini/Groq/NVIDIA/OpenRouter/Z.ai — e DeepSeek ou qualquer API compatível com OpenAI como reserva, GitHub). Sem cartão.
 
 ## Instalação (≈15 minutos)
 
@@ -35,7 +35,19 @@ node scripts/setup.mjs
 
 O assistente **pergunta o que falta** (nome, chaves de API, Telegram…), cria o banco, o repositório privado, publica o Worker e o hub, liga o Telegram e o robô de teste, e termina com um teste. Pode rodar de novo a qualquer hora: o que já está feito é pulado. As chaves ficam só no seu `.env`, que nunca vai para o git nem aparece na tela.
 
-**Prefere que um agente de IA conduza?** Abra a pasta no [Claude Code](https://claude.com/claude-code) (ou outro agente) e diga *"configure o estúdio"*. O [`CLAUDE.md`](CLAUDE.md) ensina o agente a entrevistar você, montar a configuração e rodar o setup — sem pedir segredos no chat.
+**Funciona com qualquer agente de IA — ou sem nenhum.** O instalador (`scripts/setup.mjs`) é um programa Node comum, independente de IA. Se quiser que um agente conduza (ele faz as perguntas, escreve a configuração e roda o setup), abra a pasta na ferramenta que você usa e diga *"configure o estúdio"*:
+
+| Ferramenta | Lê |
+|---|---|
+| Claude Code | `CLAUDE.md` (importa o `AGENTS.md`) e a skill em `.claude/skills` |
+| Codex, OpenCode, Jules, Aider, Zed e outros | `AGENTS.md` |
+| Gemini CLI, Antigravity | `GEMINI.md` / `AGENTS.md` e `.agents/skills` |
+| Cursor | `.cursor/rules/estudio.mdc` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Windsurf · Cline/Roo | `.windsurfrules` · `.clinerules` |
+| DeepSeek, LM Studio, Ollama e outros chats ou harnesses | cole o `AGENTS.md` como instrução do sistema, ou rode `node scripts/setup.mjs` você mesmo |
+
+Todas as cópias vêm de **um arquivo só** (`AGENTS.md`; regenere com `node scripts/sincronizar-agentes.mjs`). O agente só precisa rodar comandos e ler/criar arquivos — nenhum recurso proprietário. `node scripts/setup.mjs --verificar` imprime em JSON o que ainda falta, para qualquer agente (até modelos pequenos) seguir o roteiro. O agente **nunca** pede chaves no chat.
 
 Guia passo a passo (onde criar cada chave, Telegram, token do GitHub): [`docs/CONFIGURACAO.md`](docs/CONFIGURACAO.md).
 
@@ -61,7 +73,7 @@ hub/               o escritório em pixel art (site estático)
 assets-template/   vira o seu repositório PRIVADO: motor do jogo, biblioteca de peças CC0, robô de teste
 scripts/           setup.mjs (assistente de instalação)
 docs/              guias
-CLAUDE.md          instruções para um agente de IA configurar tudo por você
+AGENTS.md          instruções para QUALQUER agente de IA configurar tudo por você (CLAUDE.md, GEMINI.md, .cursor, .github… são cópias geradas)
 ```
 
 ## Limites honestos

@@ -18,6 +18,7 @@ const BASES: Record<string, { url: string; chave: (e: Env) => string | undefined
   openrouter: { url: "https://openrouter.ai/api/v1/chat/completions", chave: (e) => e.OPENROUTER_API_KEY },
   nvidia: { url: "https://integrate.api.nvidia.com/v1/chat/completions", chave: (e) => e.NVIDIA_API_KEY },
   zai: { url: "https://api.z.ai/api/paas/v4/chat/completions", chave: (e) => e.ZAI_API_KEY },
+  deepseek: { url: "https://api.deepseek.com/chat/completions", chave: (e) => e.DEEPSEEK_API_KEY },
   github: { url: "https://models.github.ai/inference/chat/completions", chave: (e) => e.GITHUB_MODELS_TOKEN },
 };
 
@@ -31,7 +32,10 @@ async function openRouterGratis(env: Env): Promise<string[]> {
 }
 
 async function chamarOpenAI(env: Env, provedor: string, modelo: string, msgs: Msg[], params: Record<string, unknown> = {}): Promise<Resposta> {
-  const base = BASES[provedor];
+  // provedor "custom": qualquer API compatível com OpenAI (LM Studio/Ollama/vLLM por túnel, Together, Mistral, Azure…)
+  const base = provedor === "custom" && env.CUSTOM_BASE_URL
+    ? { url: env.CUSTOM_BASE_URL.replace(/\/+$/, "").replace(/\/chat\/completions$/, "") + "/chat/completions", chave: (_e: Env) => env.CUSTOM_API_KEY || "sem-chave" }
+    : BASES[provedor];
   if (!base) throw new ErroProvedor(`provedor desconhecido: ${provedor}`, 0, false);
   const chave = base.chave(env);
   if (!chave) throw new ErroProvedor(`sem chave para ${provedor}`, 0, false);
