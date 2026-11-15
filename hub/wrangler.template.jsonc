@@ -1,0 +1,5 @@
+{
+  "name": "estudio-hub",
+  "compatibility_date": "2025-09-01",
+  "assets": { "directory": "./web" }
+}

@@ -1,0 +1,17 @@
+{
+  // Gerado/preenchido por scripts/setup.mjs. Copie para wrangler.jsonc se for configurar à mão.
+  "name": "estudio",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "triggers": { "crons": ["* * * * *", "0 0 * * *"] },
+  "ai": { "binding": "AI" },
+  "vars": {
+    "ASSETS_REPO": "SEU-USUARIO/estudio-assets",
+    "HUB_ORIGEM": "https://estudio-hub.SEU-SUBDOMINIO.workers.dev"
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "estudio", "database_id": "COLE-O-ID-DO-BANCO" }
+  ]
+}

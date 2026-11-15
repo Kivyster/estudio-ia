@@ -1,0 +1,5 @@
+{"dialogos":{
+ "abertura":[{"quem":"GUIA","fala":"Ei, você! As moedas do vale sumiram. Topa buscar?","escolhas":[{"texto":"Bora!","vai_para":"aceitou"},{"texto":"Quanto paga?","vai_para":"negociou"}]}],
+ "aceitou":[{"quem":"GUIA","fala":"Assim que eu gosto. Cuidado com os espinhos perto da pedra."}],
+ "negociou":[{"quem":"GUIA","fala":"Paga a glória eterna. E uma moeda. Talvez."},{"quem":"GUIA","fala":"Vai logo, a bandeira fica lá no fim."}]},
+ "textos":{"titulo":"VALE DAS MOEDAS","vitoria":"O VALE AGRADECE!"}}

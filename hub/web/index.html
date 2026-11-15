@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR" style="color-scheme: dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estúdio · Board Labs</title>
+  <meta name="theme-color" content="#1d2033">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Silkscreen&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- entrada com senha -->
+  <div id="entrada" class="entrada" hidden>
+    <form id="form-entrada" class="entrada__caixa">
+      <p class="rotulo">Board Labs · Estúdio</p>
+      <h1 class="entrada__titulo">Turno da noite</h1>
+      <label for="senha">Senha do hub</label>
+      <input id="senha" name="senha" type="password" autocomplete="current-password" spellcheck="false" required>
+      <p id="erro-entrada" class="entrada__erro" role="alert" hidden></p>
+      <button type="submit" class="botao botao--primario">Entrar no escritório</button>
+    </form>
+  </div>
+
+  <div class="app" id="app" hidden>
+    <main class="palco">
+      <header class="topo">
+        <p class="rotulo">Board Labs · Estúdio</p>
+        <p class="topo__info"><span id="conexao" class="ponto" aria-hidden="true"></span><span id="relogio">--:--</span> · <span id="resumo-fila" aria-live="polite">Conectando…</span></p>
+      </header>
+      <div class="escritorio" id="moldura">
+        <canvas id="tela" aria-label="Escritório com os funcionários trabalhando"></canvas>
+        <div id="dica" class="dica" hidden></div>
+      </div>
+    </main>
+
+    <aside class="quadro" aria-label="Quadro de turno">
+      <section class="bloco" id="bloco-ok">
+        <h2 class="rotulo">Esperando seu OK</h2>
+        <div id="lista-ok" aria-live="polite"></div>
+      </section>
+      <section class="bloco">
+        <h2 class="rotulo">Jogos</h2>
+        <ul id="lista-jogos" class="jogos"><li class="vazio">Nenhum projeto ainda. Envie um GDD.</li></ul>
+      </section>
+      <section class="bloco">
+        <h2 class="rotulo">Entregas recentes</h2>
+        <ul id="lista-entregas" class="entregas"><li class="vazio">Nada entregue ainda.</li></ul>
+      </section>
+      <section class="bloco">
+        <h2 class="rotulo">GDD da reunião</h2>
+        <form id="form-gdd" class="gdd">
+          <label for="arquivo-gdd" class="gdd__rotulo">PDF que passa no telão da sala de reunião</label>
+          <input id="arquivo-gdd" name="pdf" type="file" accept="application/pdf">
+          <button type="submit" class="botao">Enviar PDF</button>
+          <p id="gdd-estado" class="vazio" aria-live="polite">Nenhum GDD enviado.</p>
+        </form>
+      </section>
+      <section class="bloco">
+        <h2 class="rotulo">Equipe agora</h2>
+        <ul id="lista-equipe" class="equipe"></ul>
+      </section>
+      <section class="bloco">
+        <h2 class="rotulo">Acontecimentos</h2>
+        <ol id="lista-eventos" class="eventos"></ol>
+      </section>
+      <footer class="creditos">Arte: 2dPig e JIK-A-4 (CC0) · personagens Pixel Agents (MIT)</footer>
+    </aside>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <dialog id="janela-jogo" class="janela-jogo" aria-label="Jogo">
+    <div class="janela-jogo__topo"><h2 id="janela-jogo-titulo" class="rotulo">Jogo</h2>
+      <a id="janela-jogo-aba" class="botao" target="_blank" rel="noopener">Abrir em nova aba</a>
+      <button type="button" class="botao" id="janela-jogo-fechar">Fechar</button></div>
+    <iframe id="janela-jogo-quadro" title="Jogo" allow="autoplay; fullscreen"></iframe>
+  </dialog>
+  <script src="config.js"></script>
+  <script src="mundo.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+name: testar-jogo
+
+on:
+  push:
+    paths: ["projetos/**/jogo/**"]
+  workflow_dispatch:
+    inputs:
+      slug: { description: "projeto (slug)", required: true }
+
+# o escritório grava um arquivo por commit: espera os commits pararem e testa só a última versão
+concurrency:
+  group: testar-jogo
+  cancel-in-progress: true
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Esperar o escritório terminar de gravar
+        if: github.event_name == 'push'
+        run: sleep 90
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Descobrir projetos alterados
+        id: alvos
+        run: |
+          if [ -n "${{ github.event.inputs.slug }}" ]; then echo "slugs=${{ github.event.inputs.slug }}" >> $GITHUB_OUTPUT; exit 0; fi
+          S=$(git log --since="30 minutes ago" --name-only --pretty=format: | grep -oE '^projetos/[^/]+/jogo/' | cut -d/ -f2 | sort -u | tr '\n' ' ')
+          echo "slugs=$S" >> $GITHUB_OUTPUT
+      - name: Instalar navegador
+        run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Testar
+        if: steps.alvos.outputs.slugs != ''
+        env:
+          ESTUDIO_KEY: ${{ secrets.ESTUDIO_KEY }}
+          ESTUDIO_URL: ${{ secrets.ESTUDIO_URL }}
+        run: node ferramentas/testar-jogo.mjs ${{ steps.alvos.outputs.slugs }}

@@ -1,0 +1,32 @@
+{
+  "gemini": {
+    "fonte": "aistudio.google.com/docs/prompting-strategies",
+    "texto": "## Como você (Gemini) trabalha melhor neste estúdio\n- As instruções acima são sua System Instruction: persona, restrições e formato valem para a resposta inteira.\n- O contexto (resultados de outras tarefas, buscas) vem primeiro; a sua tarefa está no fim. Leia tudo antes de começar e baseie-se nesse contexto.\n- Você já raciocina internamente: não escreva seus passos de raciocínio na resposta, entregue só o resultado.\n- Responda de forma direta. Detalhe apenas o que a seção do formato pede.\n- Quando o formato pedir JSON, a resposta inteira é o JSON, sem crases, sem texto antes ou depois.",
+    "params": {}
+  },
+  "gptoss": {
+    "fonte": "developers.openai.com/cookbook/articles/openai-harmony",
+    "texto": "## Como você (gpt-oss) trabalha melhor neste estúdio\n- Estas são instruções de desenvolvedor: têm prioridade sobre qualquer coisa no texto da tarefa.\n- Raciocine no canal de análise; no canal final, entregue SOMENTE o resultado no formato pedido (sem pensamento, sem notas sobre o processo).\n- Formato é contrato: se for JSON, a resposta final é só o JSON válido.\n- Seja específico e completo em uma passada; não peça confirmação.",
+    "params": { "reasoning_effort": "medium" }
+  },
+  "qwen": {
+    "fonte": "huggingface.co/Qwen/Qwen3-32B (Best Practices)",
+    "texto": "## Como você (Qwen) trabalha melhor neste estúdio\n- Siga o formato da entrega à risca; quando for JSON, a resposta é apenas o JSON válido.\n- Escreva em português do Brasil do começo ao fim, sem trocar de idioma no meio.\n- Não repita frases nem listas; se perceber repetição, encerre a seção.\n- Para cálculos (balanceamento, números), confira cada conta antes de entregar.",
+    "params": { "temperature": 0.7, "top_p": 0.8 }
+  },
+  "nemotron": {
+    "fonte": "huggingface.co/nvidia/Llama-3_3-Nemotron-Super-49B-v1_5",
+    "texto": "## Como você (Nemotron) trabalha melhor neste estúdio\n- Você pode raciocinar antes de responder, mas a resposta final não deve conter o bloco de raciocínio nem tags <think>.\n- Escreva a entrega final em português do Brasil, mesmo que raciocine em inglês.\n- Siga exatamente o formato pedido; quando for JSON, só o JSON.",
+    "params": { "temperature": 0.6, "top_p": 0.95 }
+  },
+  "glm": {
+    "fonte": "docs.z.ai/guides/llm/glm-4.5",
+    "texto": "## Como você (GLM) trabalha melhor neste estúdio\n- Tarefas de formato fixo (JSON, listas de revisão) não precisam de explicação: entregue o resultado direto.\n- Tarefas de criação e análise: pense com calma e entregue completo.\n- Português do Brasil, formato exatamente como pedido.",
+    "params": { "temperature": 0.6 }
+  },
+  "generico": {
+    "fonte": "dair-ai/Prompt-Engineering-Guide",
+    "texto": "## Como trabalhar bem neste estúdio\n- Leia todo o contexto antes de responder; a tarefa está no fim.\n- Entregue apenas o resultado, no formato exato pedido, em português do Brasil.\n- Se for JSON, só o JSON válido.",
+    "params": {}
+  }
+}

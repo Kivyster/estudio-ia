@@ -1,0 +1,8 @@
+.env
+.setup-estado.json
+setup.config.json
+node_modules/
+.wrangler/
+worker/wrangler.jsonc
+hub/wrangler.jsonc
+*.log
